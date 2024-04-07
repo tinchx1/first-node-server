@@ -2,7 +2,7 @@ import mongoose from 'mongoose'
 import dotenv from 'dotenv'
 dotenv.config()
 
-const connectionString = process.env.MONGO_DB_URI
+const connectionString = process.env.MONGODB_URI
 console.log(connectionString)
 mongoose.connect(connectionString)
   .then(() => {
