@@ -3,7 +3,7 @@ import dotenv from 'dotenv'
 dotenv.config()
 
 const connectionString = process.env.MONGO_DB_URI
-
+console.log(connectionString)
 mongoose.connect(connectionString)
   .then(() => {
     console.log('Database connected')
