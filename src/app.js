@@ -1,99 +1,81 @@
-const express = require("express");
-const app = express();
+import express from 'express'
+import cors from 'cors'
+import mongo from '../mongo.js'
+import Person from '../models/person.js'
+import dotenv from 'dotenv'
+dotenv.config()
 
-const cors = require("cors");
+const app = express()
+app.use(cors())
+app.use(express.json())
+let people = []
 
-app.use(cors());
-app.use(express.json());
-let persons = [
-  {
-    id: 1,
-    name: "Arto Hellas",
-    number: "040-123456",
-  },
-  {
-    id: 2,
-    name: "Ada Lovelace",
-    number: "39-44-5323523",
-  },
-  {
-    id: 3,
-    name: "Dan Abramov",
-    number: "12-43-234345",
-  },
-  {
-    id: 4,
-    name: "Mary Poppendieck",
-    number: "39-23-6423122",
-  },
-];
+app.get('/api/people', (request, response) => {
+  Person.find({}).then(people => {
+    response.json(people)
+  })
+})
 
-app.get("/api/persons", (request, response) => {
-  response.json(persons);
-});
-
-app.get("/info", (request, response) => {
-  const totalPersons = persons.length;
-  request.timestamp = new Date();
-  const date = request.timestamp.toLocaleString();
-  response.send(`<p>Phonebook has info for ${totalPersons} people</p>
+app.get('/info', (request, response) => {
+  const totalpeople = people.length
+  request.timestamp = new Date()
+  const date = request.timestamp.toLocaleString()
+  response.send(`<p>Phone book has info for ${totalpeople} people</p>
   <p>${date}</p>
-  `);
-});
+  `)
+})
 
-app.get("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  const person = persons.find((person) => person.id === id);
+app.get('/api/people/:id', (request, response) => {
+  const id = Number(request.params.id)
+  const person = people.find((person) => person.id === id)
 
   if (person) {
-    response.json(person);
+    response.json(person)
   } else {
-    response.status(404).end();
+    response.status(404).end()
   }
-});
+})
 
-app.delete("/api/persons/:id", (request, response) => {
-  const id = Number(request.params.id);
-  persons = persons.filter((person) => person.id !== id);
+app.delete('/api/people/:id', (request, response) => {
+  const id = Number(request.params.id)
+  people = people.filter((person) => person.id !== id)
 
-  response.status(204).end();
-});
+  response.status(204).end()
+})
 
-app.post("/api/persons", (request, response) => {
-  const person = request.body;
+app.post('/api/people', (request, response) => {
+  const person = request.body
   if (!person.name || !person.number) {
     return response.status(400).json({
-      error: "content missing",
-    });
+      error: 'content missing'
+    })
   }
-  const numberDuplicate = persons.some(
+  const numberDuplicate = people.some(
     (existingPerson) => existingPerson.name === person.name
-  );
+  )
   if (numberDuplicate) {
     return response.status(400).json({
-      error: "name have to be unique",
-    });
+      error: 'name have to be unique'
+    })
   }
-  const ids = persons.map((person) => person.id);
-  const maxId = Math.max(...ids);
-  const newNote = {
-    id: maxId + 1,
+  const newPerson = new Person({
     name: person.name,
-    number: person.number,
-  };
-  persons.push(newNote);
-  console.log(newNote);
-  response.json(newNote);
-});
+    number: person.number
+  })
+
+  newPerson.save().then((savedNoted) => {
+    response.json(savedNoted)
+  })
+})
 
 app.use((request, response) => {
   response.status(404).json({
-    error: "Error 404 Not found page",
-  });
-});
-const PORT = 3001;
+    error: 'Error 404 Not found page'
+  })
+})
+const PORT = process.env.PORT
 app.listen(PORT, () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+  console.log(`Server is running on port ${PORT}`)
+})
 
-export default app;
+export default app
