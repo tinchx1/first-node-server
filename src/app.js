@@ -8,7 +8,7 @@ dotenv.config()
 const app = express()
 app.use(cors())
 app.use(express.json())
-let people = []
+const people = []
 
 app.get('/api/people', (request, response) => {
   Person.find({}).then(people => {
@@ -17,7 +17,7 @@ app.get('/api/people', (request, response) => {
 })
 
 app.get('/info', (request, response) => {
-  const totalpeople = people.length
+  const totalpeople = Person.length
   request.timestamp = new Date()
   const date = request.timestamp.toLocaleString()
   response.send(`<p>Phone book has info for ${totalpeople} people</p>
@@ -25,22 +25,24 @@ app.get('/info', (request, response) => {
   `)
 })
 
-app.get('/api/people/:id', (request, response) => {
-  const id = Number(request.params.id)
-  const person = people.find((person) => person.id === id)
-
-  if (person) {
-    response.json(person)
-  } else {
-    response.status(404).end()
-  }
+app.get('/api/people/:id', (request, response, next) => {
+  const { id } = request.params
+  Person.findById(id).then(person => {
+    if (person) {
+      response.json(person)
+    } else {
+      response.status(404).end()
+    }
+  }).catch(error => {
+    next(error)
+  })
 })
 
-app.delete('/api/people/:id', (request, response) => {
-  const id = Number(request.params.id)
-  people = people.filter((person) => person.id !== id)
-
-  response.status(204).end()
+app.delete('/api/people/:id', (request, response, next) => {
+  const { id } = request.params
+  Person.findByIdAndDelete(id).then(person =>
+    response.status(204).end()
+  ).catch(error => next(error))
 })
 
 app.post('/api/people', (request, response) => {
@@ -68,7 +70,20 @@ app.post('/api/people', (request, response) => {
   })
 })
 
-app.use((request, response) => {
+app.put('/api/people/:id', (request, response) => {
+  const { id } = request.params
+  const person = request.body
+  const newPerson = {
+    name: person.name,
+    number: person.number
+  }
+  Person.findByIdAndUpdate(id, newPerson)
+    .then(result => {
+      response.json(result)
+    })
+})
+app.use((error, request, response, next) => {
+  console.log(error)
   response.status(404).json({
     error: 'Error 404 Not found page'
   })
