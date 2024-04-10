@@ -53,11 +53,7 @@ app.delete('/api/people/:id', (request, response, next) => {
 
 app.post('/api/people', (request, response, next) => {
   const person = request.body
-  if (!person.name || !person.number) {
-    return response.status(400).json({
-      error: 'content missing'
-    })
-  }
+
   const numberDuplicate = people.some(
     (existingPerson) => existingPerson.name === person.name
   )
