@@ -3,6 +3,8 @@ import cors from 'cors'
 import mongo from '../mongo.js'
 import Person from '../models/person.js'
 import dotenv from 'dotenv'
+import { notFound } from '../middleware/notFound.js'
+import { handleErrors } from '../middleware/handleErrors.js'
 dotenv.config()
 
 const app = express()
@@ -10,10 +12,14 @@ app.use(cors())
 app.use(express.json())
 const people = []
 
-app.get('/api/people', (request, response) => {
-  Person.find({}).then(people => {
-    response.json(people)
-  })
+app.get('/api/people', (request, response, next) => {
+  Person.find({})
+    .then(people => {
+      response.json(people)
+    })
+    .catch(error => {
+      next(error)
+    })
 })
 
 app.get('/info', (request, response) => {
@@ -45,7 +51,7 @@ app.delete('/api/people/:id', (request, response, next) => {
   ).catch(error => next(error))
 })
 
-app.post('/api/people', (request, response) => {
+app.post('/api/people', (request, response, next) => {
   const person = request.body
   if (!person.name || !person.number) {
     return response.status(400).json({
@@ -65,9 +71,11 @@ app.post('/api/people', (request, response) => {
     number: person.number
   })
 
-  newPerson.save().then((savedNoted) => {
-    response.json(savedNoted)
-  })
+  newPerson.save()
+    .then((savedNoted) => {
+      response.json(savedNoted)
+    })
+    .catch(error => next(error))
 })
 
 app.put('/api/people/:id', (request, response) => {
@@ -82,12 +90,9 @@ app.put('/api/people/:id', (request, response) => {
       response.json(result)
     })
 })
-app.use((error, request, response, next) => {
-  console.log(error)
-  response.status(404).json({
-    error: 'Error 404 Not found page'
-  })
-})
+
+app.use(notFound)
+app.use(handleErrors)
 const PORT = process.env.PORT
 app.listen(PORT, () => {
   console.log(`Server is running on port ${PORT}`)
