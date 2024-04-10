@@ -1,7 +1,11 @@
-import mongoose, { model, Schema } from 'mongoose'
+import { model, Schema } from 'mongoose'
 
 const personSchema = new Schema({
-  name: String,
+  name: {
+    type: String,
+    minLength: 3,
+    required: true
+  },
   number: Number
 })
 const Person = model('Person', personSchema)

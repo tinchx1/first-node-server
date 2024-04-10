@@ -17,10 +17,10 @@ app.get('/api/people', (request, response) => {
 })
 
 app.get('/info', (request, response) => {
-  const totalpeople = Person.length
+  const totalPeople = Person.length
   request.timestamp = new Date()
   const date = request.timestamp.toLocaleString()
-  response.send(`<p>Phone book has info for ${totalpeople} people</p>
+  response.send(`<p>Phone book has info for ${totalPeople} people</p>
   <p>${date}</p>
   `)
 })
